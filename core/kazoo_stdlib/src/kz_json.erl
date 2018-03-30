@@ -569,9 +569,12 @@ recursive_from_map({K, V}) ->
 recursive_from_map(Else) -> Else.
 
 -spec maybe_tuple_to_json(json_term() | tuple()) -> json_term().
-maybe_tuple_to_json(V)
-  when is_tuple(V) ->
-    from_list([V]);
+maybe_tuple_to_json({K, V})
+  when is_binary(K);
+       is_atom(K) ->
+    from_list([{K, V}]);
+maybe_tuple_to_json({K, V}) ->
+    from_list([{kz_term:to_binary(K), V}]);
 maybe_tuple_to_json(V) -> V.
 
 -spec get_json_value(path(), object()) -> kz_term:api_object().
