@@ -562,11 +562,17 @@ recursive_from_map(List) when is_list(List) ->
     Res = [recursive_from_map(Item) || Item <- List],
     case lists:all(fun is_tuple/1, Res) of
         'true' -> from_list(Res);
-        'false' -> Res
+        'false' -> [maybe_tuple_to_json(R) || R  <- Res]
     end;
 recursive_from_map({K, V}) ->
     {K, recursive_from_map(V)};
 recursive_from_map(Else) -> Else.
+
+-spec maybe_tuple_to_json(json_term() | tuple()) -> json_term().
+maybe_tuple_to_json(V)
+  when is_tuple(V) ->
+    from_list([V]);
+maybe_tuple_to_json(V) -> V.
 
 -spec get_json_value(path(), object()) -> kz_term:api_object().
 get_json_value(Key, JObj) -> get_json_value(Key, JObj, 'undefined').
