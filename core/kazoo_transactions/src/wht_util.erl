@@ -128,7 +128,10 @@ base_call_cost(RateCost, RateMin, RateSurcharge)
   when is_integer(RateCost),
        is_integer(RateMin),
        is_integer(RateSurcharge) ->
-    RateCost * (RateMin div 60) + RateSurcharge;
+    case RateMin < 60 of
+        'true' -> RateCost + RateSurcharge;
+        'false' -> RateCost * (RateMin div 60) + RateSurcharge
+    end;
 base_call_cost(RateCost, RateMin, RateSurcharge) ->
     Args = [maybe_convert_to_units(X) || X <- [RateCost, RateMin, RateSurcharge]],
     apply(fun base_call_cost/3, Args).
@@ -308,7 +311,8 @@ calculate_call(JObj) ->
             Surcharge = get_integer_value(<<"Surcharge">>, CCVs),
             {ChargedSeconds, Cost} = calculate_call(Rate, RateIncr, RateMin, Surcharge, BillingSecs),
             Discount = trunc((get_integer_value(<<"Discount-Percentage">>, CCVs) * 0.01) * Cost),
-            lager:info("rate $~p/~ps,"
+            lager:info("rate $~p,"
+                       " increment ~ps,"
                        " minimum ~ps,"
                        " surcharge $~p,"
                        " for ~ps (~ps),"
